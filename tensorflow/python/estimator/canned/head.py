@@ -175,7 +175,7 @@ class _Head(object):
   @abc.abstractmethod
   def create_estimator_spec(
       self, features, mode, logits, labels=None, train_op_fn=None,
-      regularization_losses=None):
+      regularization_losses=None, scaffold=None):
     """Returns `EstimatorSpec` that a model_fn can return.
 
     Please note that,
@@ -193,6 +193,8 @@ class _Head(object):
         EstimatorSpec.loss to compute and apply gradients.
       regularization_losses: A list of additional scalar losses to be added to
         the training loss, such as regularization losses.
+      scaffold: A `tf.train.Scaffold` object that can be used to set
+        initialization, saver, and more to be used in training.
 
     Returns:
       `EstimatorSpec`.
@@ -695,7 +697,7 @@ class _MultiClassHeadWithSoftmaxCrossEntropyLoss(_Head):
 
   def create_estimator_spec(
       self, features, mode, logits, labels=None, train_op_fn=None,
-      regularization_losses=None):
+      regularization_losses=None, scaffold=None):
     """Returns an `EstimatorSpec`.
 
     Args:
@@ -714,6 +716,8 @@ class _MultiClassHeadWithSoftmaxCrossEntropyLoss(_Head):
         set `loss_reduction=SUM_OVER_BATCH_SIZE` or
         `loss_reduction=SUM_OVER_NONZERO_WEIGHTS` when creating the head to
         avoid scaling errors.
+      scaffold: A `tf.train.Scaffold` object that can be used to set
+        initialization, saver, and more to be used in training.
     Returns:
       `EstimatorSpec`.
     Raises:
@@ -751,6 +755,7 @@ class _MultiClassHeadWithSoftmaxCrossEntropyLoss(_Head):
         return model_fn.EstimatorSpec(
             mode=model_fn.ModeKeys.PREDICT,
             predictions=predictions,
+            scaffold=scaffold,
             export_outputs={
                 _DEFAULT_SERVING_KEY: classifier_output,
                 _CLASSIFY_SERVING_KEY: classifier_output,
@@ -772,6 +777,7 @@ class _MultiClassHeadWithSoftmaxCrossEntropyLoss(_Head):
             mode=model_fn.ModeKeys.EVAL,
             predictions=predictions,
             loss=regularized_training_loss,
+            scaffold=scaffold,
             eval_metric_ops=self._eval_metric_ops(
                 labels=label_ids,
                 class_ids=class_ids,
@@ -807,6 +813,7 @@ class _MultiClassHeadWithSoftmaxCrossEntropyLoss(_Head):
         mode=model_fn.ModeKeys.TRAIN,
         predictions=predictions,
         loss=regularized_training_loss,
+        scaffold=scaffold,
         train_op=train_op_fn(regularized_training_loss))
 
 
@@ -1028,7 +1035,7 @@ class _BinaryLogisticHeadWithSigmoidCrossEntropyLoss(_Head):
 
   def create_estimator_spec(
       self, features, mode, logits, labels=None, train_op_fn=None,
-      regularization_losses=None):
+      regularization_losses=None, scaffold=None):
     """Returns an `EstimatorSpec`.
 
     Args:
@@ -1047,6 +1054,8 @@ class _BinaryLogisticHeadWithSigmoidCrossEntropyLoss(_Head):
         set `loss_reduction=SUM_OVER_BATCH_SIZE` or
         `loss_reduction=SUM_OVER_NONZERO_WEIGHTS` when creating the head to
         avoid scaling errors.
+      scaffold: A `tf.train.Scaffold` object that can be used to set
+        initialization, saver, and more to be used in training.
     Returns:
       `EstimatorSpec`.
     Raises:
@@ -1087,6 +1096,7 @@ class _BinaryLogisticHeadWithSigmoidCrossEntropyLoss(_Head):
         return model_fn.EstimatorSpec(
             mode=model_fn.ModeKeys.PREDICT,
             predictions=predictions,
+            scaffold=scaffold,
             export_outputs={
                 _DEFAULT_SERVING_KEY: classifier_output,
                 _CLASSIFY_SERVING_KEY: classifier_output,
@@ -1112,6 +1122,7 @@ class _BinaryLogisticHeadWithSigmoidCrossEntropyLoss(_Head):
             mode=model_fn.ModeKeys.EVAL,
             predictions=predictions,
             loss=regularized_training_loss,
+            scaffold=scaffold,
             eval_metric_ops=self._eval_metric_ops(
                 labels=processed_labels,
                 logits=logits,
@@ -1148,6 +1159,7 @@ class _BinaryLogisticHeadWithSigmoidCrossEntropyLoss(_Head):
         mode=model_fn.ModeKeys.TRAIN,
         predictions=predictions,
         loss=regularized_training_loss,
+        scaffold=scaffold,
         train_op=train_op_fn(regularized_training_loss))
 
 
@@ -1266,7 +1278,7 @@ class _RegressionHeadWithMeanSquaredErrorLoss(_Head):
 
   def create_estimator_spec(
       self, features, mode, logits, labels=None, train_op_fn=None,
-      regularization_losses=None):
+      regularization_losses=None, scaffold=None):
     """Returns an `EstimatorSpec`.
 
     Args:
@@ -1286,6 +1298,8 @@ class _RegressionHeadWithMeanSquaredErrorLoss(_Head):
         set `loss_reduction=SUM_OVER_BATCH_SIZE` or
         `loss_reduction=SUM_OVER_NONZERO_WEIGHTS` when creating the head to
         avoid scaling errors.
+      scaffold: A `tf.train.Scaffold` object that can be used to set
+        initialization, saver, and more to be used in training.
     Returns:
       `EstimatorSpec`.
     Raises:
@@ -1300,6 +1314,7 @@ class _RegressionHeadWithMeanSquaredErrorLoss(_Head):
         return model_fn.EstimatorSpec(
             mode=model_fn.ModeKeys.PREDICT,
             predictions=predictions,
+            scaffold=scaffold,
             export_outputs={
                 _DEFAULT_SERVING_KEY: regression_output,
                 _REGRESS_SERVING_KEY: regression_output,
@@ -1336,6 +1351,7 @@ class _RegressionHeadWithMeanSquaredErrorLoss(_Head):
             mode=model_fn.ModeKeys.EVAL,
             predictions=predictions,
             loss=regularized_training_loss,
+            scaffold=scaffold,
             eval_metric_ops=eval_metric_ops)
 
       # Train.
@@ -1365,6 +1381,7 @@ class _RegressionHeadWithMeanSquaredErrorLoss(_Head):
         mode=model_fn.ModeKeys.TRAIN,
         predictions=predictions,
         loss=regularized_training_loss,
+        scaffold=scaffold,
         train_op=train_op_fn(regularized_training_loss))
 
 
